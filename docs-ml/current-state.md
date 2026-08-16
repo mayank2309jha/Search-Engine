@@ -1,6 +1,6 @@
 # ML current state
 
-Honest snapshot. Numbers reference `RUNDOWN_ML.html` (at the project root, alongside this `docs-ml/` folder — both flattened to sit side by side as of Phase 13's repo cleanup) — a weighted 6-group scorecard scoped to query understanding/parsing/retrieval; see that file's own footer for the current total.
+Honest snapshot. Numbers reference `RUNDOWN_ML.html` (at the project root, alongside this `docs-ml/` folder — both flattened to sit side by side as of Phase 13's repo cleanup) — a weighted 6-group scorecard scoped to query understanding/parsing/retrieval; see that file's own footer for the current total. `test-results.md` (this folder) has the pytest breakdown for exactly this scope — which of the 7 in-scope modules have dedicated test coverage and which don't.
 
 ## Phase 11 (same day): real, independent ground truth now exists — and it caught a real bias
 

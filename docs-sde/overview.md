@@ -55,4 +55,4 @@ Full reasoning and the verification methodology are in `DESIGN AND IMPLEMENTATIO
 
 ## Git state (as of the work described in these docs)
 
-Everything lives on the `retrievalranking` branch, several commits ahead of `main`, **not yet pushed to GitHub** (standing instruction from the project owner: don't push or PR without explicit go-ahead). If you're picking this up fresh, check `git log --oneline -10` and `git status` before assuming anything about what's shared vs. local-only.
+As of Phase 13/14, this is a fresh, standalone repo (`github.com/mayank2309jha/Search-Engine`, branch `main`) — pushed for the first time, CI verified green on real GitHub infrastructure (Phase 14). It's intentionally decoupled from the original team repo: that history (branch `retrievalranking`, the teammate coordination below) was backed up as a full `git bundle` before being dropped, not carried forward — see `runningUpdates.md`'s Phase 13. Team coordination (the title-indexing review, the teammate's unmerged crawler work) is still against the *original* repo, not this one — check there, not here, before assuming review status.
