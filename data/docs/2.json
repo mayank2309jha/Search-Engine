@@ -1,0 +1,6 @@
+{
+    "id": 2,
+    "url": "https://example.com/information-retrieval",
+    "title": "Information Retrieval Basics",
+    "content": "Information retrieval systems use an inverted index for fast search. Search engines rank documents using term frequency and document frequency. Hello World!"
+}

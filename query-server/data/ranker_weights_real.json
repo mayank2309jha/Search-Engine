@@ -1,0 +1,21 @@
+{
+  "bm25_weight": 0.4515,
+  "pagerank_weight": 0.5485,
+  "raw_coefficients": {
+    "bm25": 0.7419,
+    "pagerank": 0.9012
+  },
+  "trained_on": "the REAL crawled corpus (data/index.bin + crawler.db, 19,514 docs) and scripts/evaluate_real.py's hand-verified judgment set -- 20 queries, real documents, real relevance judgments (not programmatically derived from corpus-generation metadata)",
+  "training_examples": 58729,
+  "positive_examples": 21,
+  "method": "sklearn.linear_model.Ridge(positive=True, alpha=1.0), balanced sample weights, coefficients renormalized to sum to 1.",
+  "pagerank_bias_check": {
+    "num_relevant_docs": 14,
+    "relevant_docs_mean_pagerank": 0.39859545707292354,
+    "corpus_mean_pagerank": 0.006843458386585405,
+    "corpus_median_pagerank": 0.0,
+    "relevant_vs_corpus_ratio": 58.24474038656436,
+    "likely_selection_bias": true
+  },
+  "deployment_recommendation": "NOT recommended -- judgment set exhibits confirmed selection bias toward high-authority domains (relevant docs' mean PageRank is 58x the corpus mean), which directly inflates PageRank's apparent importance independent of whether it actually predicts relevance. Needs a bias-corrected judgment set before this weight is trustworthy."
+}

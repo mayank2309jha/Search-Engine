@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search Engine</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <header class="masthead" id="masthead">
+    <h1 class="wordmark">SEARCH ENGINE</h1>
+
+    <form class="search-form" id="search-form">
+      <label for="query-input" class="visually-hidden">Search query</label>
+      <input
+        type="text"
+        id="query-input"
+        class="query-input"
+        autocomplete="off"
+        autofocus
+      >
+      <div class="search-actions">
+        <button type="submit" class="btn btn-primary" id="btn-search" value="lexical">Search</button>
+        <button type="submit" class="btn btn-secondary" id="btn-semantic" value="semantic">Semantic Search</button>
+      </div>
+    </form>
+
+    <p class="powered-by">Powered by:<br><span>BM25</span> &bull; <span>PageRank</span> &bull; <span>Semantic Retrieval</span></p>
+  </header>
+
+  <main id="results-view" class="results-view" hidden>
+    <div class="results-bar">
+      <button class="back-link" id="btn-back">&larr; New search</button>
+      <p class="results-summary" id="results-summary"></p>
+    </div>
+    <div id="results-list" class="results-list"></div>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

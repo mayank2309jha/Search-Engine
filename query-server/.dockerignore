@@ -1,0 +1,22 @@
+# Real data artifacts -- mounted at runtime (docker-compose.yml), never baked
+# into the image. embeddings_cache_cpp.pkl alone is ~30MB and regenerable;
+# corpus.json/evaluation results aren't needed at serving time at all.
+data/
+
+# Never needed inside the runtime image
+tests/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+**/__pycache__/
+*.pyc
+.coverage
+htmlcov/
+
+# Docs -- not application code
+*.md
+README.md
+
+# Local/dev only
+.venv/
+.git/

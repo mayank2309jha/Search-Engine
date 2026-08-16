@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search Engine — SDE Rundown</title>
+<style>
+  :root {
+    --paper: #EDEFF2;
+    --surface: #FFFFFF;
+    --surface-2: #F5F6F8;
+    --ink: #14161B;
+    --ink-soft: #4B5058;
+    --ink-faint: #767B84;
+    --rule: rgba(20,22,27,0.12);
+    --rule-strong: rgba(20,22,27,0.22);
+    --accent: #2C5F63;
+    --accent-soft: rgba(44,95,99,0.09);
+    --accent-strong: #1C4245;
+    --good: #3E7A5E;
+    --good-soft: rgba(62,122,94,0.12);
+    --warn: #B8752E;
+    --warn-soft: rgba(184,117,46,0.12);
+    --critical: #A83E32;
+    --critical-soft: rgba(168,62,50,0.10);
+    --shadow: 0 1px 2px rgba(20,22,27,0.06), 0 8px 24px -12px rgba(20,22,27,0.18);
+
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-head: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Roboto, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14161B;
+      --surface: #1B1E24;
+      --surface-2: #21252C;
+      --ink: #EDEFF2;
+      --ink-soft: #A9AEB6;
+      --ink-faint: #7C828B;
+      --rule: rgba(237,239,242,0.14);
+      --rule-strong: rgba(237,239,242,0.24);
+      --accent: #7FBFC3;
+      --accent-soft: rgba(127,191,195,0.12);
+      --accent-strong: #A6D6D9;
+      --good: #6FAE8C;
+      --good-soft: rgba(111,174,140,0.14);
+      --warn: #D99A52;
+      --warn-soft: rgba(217,154,82,0.14);
+      --critical: #D8695A;
+      --critical-soft: rgba(216,105,90,0.14);
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #14161B;
+    --surface: #1B1E24;
+    --surface-2: #21252C;
+    --ink: #EDEFF2;
+    --ink-soft: #A9AEB6;
+    --ink-faint: #7C828B;
+    --rule: rgba(237,239,242,0.14);
+    --rule-strong: rgba(237,239,242,0.24);
+    --accent: #7FBFC3;
+    --accent-soft: rgba(127,191,195,0.12);
+    --accent-strong: #A6D6D9;
+    --good: #6FAE8C;
+    --good-soft: rgba(111,174,140,0.14);
+    --warn: #D99A52;
+    --warn-soft: rgba(217,154,82,0.14);
+    --critical: #D8695A;
+    --critical-soft: rgba(216,105,90,0.14);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  a { color: var(--accent-strong); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px 96px; }
+
+  /* ---------- Masthead ---------- */
+  .masthead {
+    padding: 56px 0 28px;
+    border-bottom: 3px solid var(--ink);
+  }
+  .eyebrow {
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 2px;
+    background: var(--accent-strong);
+    display: inline-block;
+  }
+  h1.title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(34px, 5.4vw, 52px);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    margin: 0 0 16px;
+    text-wrap: balance;
+    max-width: 16ch;
+  }
+  .dateline {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink-faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+  }
+  .dateline b { color: var(--ink-soft); font-weight: 600; }
+
+  /* ---------- Stat rundown ---------- */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--rule-strong);
+    border: 1px solid var(--rule-strong);
+    margin: 32px 0 8px;
+  }
+  .stat-card {
+    background: var(--surface);
+    padding: 22px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stat-label {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 40px;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .stat-num.accent { color: var(--accent-strong); }
+  .stat-note { font-size: 12.5px; color: var(--ink-faint); line-height: 1.4; }
+  .stat-note.flag { color: var(--critical); font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ---------- Section scaffolding ---------- */
+  section { margin-top: 56px; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+  h2.section-title {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0;
+    white-space: nowrap;
+  }
+  .section-head::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule-strong);
+  }
+  .section-dek {
+    color: var(--ink-soft);
+    font-size: 15px;
+    max-width: 68ch;
+    margin: 14px 0 24px;
+  }
+
+  /* ---------- Assessment (two column) ---------- */
+  .assessment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--rule-strong);
+  }
+  .assess-col { padding: 22px 24px; }
+  .assess-col + .assess-col { border-left: 1px solid var(--rule-strong); }
+  .assess-col h3 {
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .assess-col.good h3 { color: var(--good); }
+  .assess-col.risk h3 { color: var(--critical); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; display: inline-block; }
+  .assess-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+  .assess-list li { font-size: 14.5px; line-height: 1.5; padding-left: 16px; border-left: 2px solid var(--rule); }
+  .assess-list b { display: block; color: var(--ink); font-weight: 650; margin-bottom: 2px; }
+  .assess-list span { color: var(--ink-soft); }
+
+  @media (max-width: 720px) {
+    .assessment-grid { grid-template-columns: 1fr; }
+    .assess-col + .assess-col { border-left: none; border-top: 1px solid var(--rule-strong); }
+  }
+
+  /* ---------- Math callout ---------- */
+  .math-box {
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    padding: 22px 24px 6px;
+  }
+  .math-lead { font-size: 14.5px; color: var(--ink-soft); margin: 0 0 18px; max-width: 68ch; }
+  table.math-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.math-table th {
+    text-align: left;
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 0 10px 10px 0;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  table.math-table td {
+    padding: 9px 10px 9px 0;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  table.math-table td:first-child { font-family: var(--font-body); }
+  table.math-table tr.total td {
+    border-top: 2px solid var(--ink);
+    border-bottom: none;
+    font-weight: 700;
+    padding-top: 12px;
+  }
+  table.math-table tr.total td:first-child { font-family: var(--font-head); text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+  .num-r { text-align: right; }
+
+  /* ---------- Roadmap table ---------- */
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    margin-bottom: 10px;
+  }
+  .phase + .phase { margin-top: 10px; }
+  .phase summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--font-head);
+  }
+  .phase summary::-webkit-details-marker { display: none; }
+  .phase summary::before {
+    content: "▸";
+    color: var(--accent);
+    font-size: 13px;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+  }
+  .phase[open] summary::before { transform: rotate(90deg); }
+  .phase-name { font-weight: 700; font-size: 15px; }
+  .phase-status {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-left: auto;
+    display: flex;
+    gap: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .phase-bar {
+    width: 64px;
+    height: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .phase-bar i { display: block; height: 100%; background: var(--good); }
+
+  .rows { border-top: 1px solid var(--rule-strong); }
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 76px 64px 120px;
+    gap: 16px;
+    align-items: center;
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .row:last-child { border-bottom: none; }
+  .row-item { min-width: 0; }
+  .row-item .name { font-size: 14px; font-weight: 550; color: var(--ink); }
+  .row-item .note { font-size: 12.5px; color: var(--ink-faint); margin-top: 3px; line-height: 1.4; }
+  .diff {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 3px;
+    text-align: center;
+    white-space: nowrap;
+    justify-self: start;
+  }
+  .diff.low { background: var(--good-soft); color: var(--good); }
+  .diff.med { background: var(--warn-soft); color: var(--warn); }
+  .diff.high { background: var(--critical-soft); color: var(--critical); }
+  .diff.vhigh { background: var(--critical); color: var(--surface); }
+  .wt {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .prog { display: flex; align-items: center; gap: 8px; }
+  .prog-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .prog-bar i { display: block; height: 100%; }
+  .prog-pct {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    width: 30px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row-head {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 76px 64px 120px;
+    gap: 16px;
+    padding: 8px 20px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .row-head span {
+    font-family: var(--font-head);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .row-head span:nth-child(3) { text-align: right; }
+
+  @media (max-width: 640px) {
+    .row, .row-head { grid-template-columns: minmax(0,1fr) 56px 92px; }
+    .wt { display: none; }
+    .row-head span:nth-child(2) { display: none; }
+  }
+
+  .table-scroll { overflow-x: auto; }
+
+  /* ---------- Delay-reasons toggle ---------- */
+  .delay-note {
+    margin: 14px 20px 4px;
+    background: var(--warn-soft);
+    border: 1px solid var(--rule-strong);
+    border-left: 3px solid var(--warn);
+    border-radius: 2px;
+  }
+  .delay-note summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 16px;
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--warn);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .delay-note summary::-webkit-details-marker { display: none; }
+  .delay-note summary::before {
+    content: "▸";
+    font-size: 11px;
+    transition: transform 0.15s ease;
+  }
+  .delay-note[open] summary::before { transform: rotate(90deg); }
+  .delay-note-body { padding: 0 16px 16px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; }
+  .delay-note-body p { margin: 0 0 10px; }
+  .delay-note-body p:last-child { margin-bottom: 0; }
+
+  /* ---------- MVP-adjusted total ---------- */
+  .mvp-adjust {
+    margin-top: 14px;
+    padding: 16px 20px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+  }
+  .mvp-adjust-label {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+    flex-basis: 100%;
+  }
+  .mvp-adjust-value {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .mvp-adjust-note {
+    font-size: 13px;
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+
+  /* ---------- Phasing ---------- */
+  .phasing-list { list-style: none; margin: 0; padding: 0; counter-reset: phase-counter; }
+  .phasing-item {
+    counter-increment: phase-counter;
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .phasing-item:last-child { border-bottom: none; }
+  .phasing-item::before {
+    content: counter(phase-counter, decimal-leading-zero);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 700;
+    padding-top: 2px;
+  }
+  .phasing-item h4 { margin: 0 0 4px; font-family: var(--font-head); font-size: 15px; font-weight: 700; }
+  .phasing-item p { margin: 0; color: var(--ink-soft); font-size: 14px; max-width: 66ch; }
+  .parallel-note {
+    margin-top: 20px;
+    padding: 14px 18px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  .parallel-note b { color: var(--ink); }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule-strong);
+    font-size: 13px;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Search Engine — SDE Field Report</p>
+    <h1 class="title">Where the query-serving layer stands</h1>
+    <div class="dateline">
+      <span><b>Filed</b> 15 Aug 2026 · updated 17 Aug 2026, Phase 12</span>
+      <span><b>Subject</b> Job-postings search engine, Phase 12 -- Dockerized, memory-calibrated against real measurements</span>
+      <span><b>Basis</b> Phases 7–10's work (frontend, tests, CI, auth, scale-readiness, real data), with Phase 11 proving the two remaining disclosed gaps — Redis-readiness never touching a real server, and a real bug hiding in the CI pipeline — against reality instead of a fake client and a code read</span>
+    </div>
+  </header>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-label">Complete vs. full team vision</span>
+      <span class="stat-num accent">~89%</span>
+      <span class="stat-note flag">Up from 87% — a small, deliberate move: the Redis cache/rate-limiter are now verified against a real instance, and a real CI-breaking bug (an untracked <code>data/index.bin</code> crashing every API test's fixture) was found and fixed before it could bite. Deployment remains, overwhelmingly, the one thing separating this from a complete score.</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Rating, as it sits today</span>
+      <span class="stat-num">9.0/10</span>
+      <span class="stat-note">The kind of round that doesn't produce a dramatic score jump but meaningfully de-risks the next one: CI is now actually safe to push (it wasn't, before this round), and Redis-readiness is proven against a real server, not asserted from code review.</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">+ push, deploy</span>
+      <span class="stat-num">9.3/10</span>
+      <span class="stat-note">The CI fix this round makes this safe to do for the first time. Push to GitHub to confirm it actually goes green, and put a live link in front of a hiring manager — the auth and Redis wiring are already there waiting for it.</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">+ CI/tests everywhere</span>
+      <span class="stat-num">9.7/10</span>
+      <span class="stat-note">Extend CI/tests to the crawler and C++ engine too (today's CI builds the C++ engine but doesn't test it) — the last remaining gap in Group F now that Redis-readiness is proven.</span>
+    </div>
+  </div>
+
+  <section>
+    <div class="section-head"><h2 class="section-title">The honest assessment</h2></div>
+    <p class="section-dek">Updated after Phase 11: a real CI-breaking bug found and fixed before it shipped, and Redis-readiness proven against an actual local instance instead of a fake client. Groups A and B (crawler, C++ engine) are unchanged since last verified by reading; everything else below reflects what was actually verified this round — by hitting a real Redis with <code>redis-cli</code>, by fully reproducing a fresh CI checkout locally and watching it pass.</p>
+    <div class="assessment-grid">
+      <div class="assess-col good">
+        <h3><span class="dot"></span>What's working</h3>
+        <ul class="assess-list">
+          <li><b>The three components are actually connected now, not just individually sound.</b><span>A new <code>app/cpp_index_reader.py</code> decodes <code>data/index.bin</code> directly — magic header, section-offset table, LEB128-varint postings, delta-encoded positions — into the exact shape <code>bm25.py</code>/<code>ranking.py</code> already expected, so neither needed a single line changed. Verified byte-exact, not just "it didn't crash": after decoding, the read cursor lands precisely on the next section's stored offset, and the decoded position count matches the file's own declared count, exactly, against the real 240-document index.</span></li>
+          <li><b>Real queries against real data, through the real endpoints, not a mocked demo.</b><span>Confirmed directly this session: <code>python OR javascript</code> (multi-term boolean, 72 results), <code>rerank=true</code> semantic search that correctly pulled in a real BBC News article via augmentation, and <code>/suggest?prefix=wiki</code> → <code>wikipedia</code> — all running against 240 real crawled pages (Wikipedia, BBC, python.org) via the actual FastAPI app, not a script that imports internal functions directly.</span></li>
+          <li><b>PageRank is real now, and it required zero changes to the ranking code that consumes it.</b><span><code>doc_pageranks</code> comes straight from your partner's <code>crawler/ranking/pagerank.py</code> power iteration over the real crawled link graph, read out of <code>data/index.bin</code>. <code>authority.py</code>'s <code>normalize_pagerank()</code> — untouched — is exactly what Phase 3 kept isolated specifically so a delayed real signal could drop in later. It just did.</span></li>
+          <li><b>The crawler's concurrency correctness is real, specific, and exactly the kind that's easy to get wrong.</b><span>Termination is detected via <code>queue.unfinished_tasks</code>, not <code>queue.empty()</code> — an empty queue is normal mid-fetch, and the classic bug treats it as "done" prematurely. The per-domain rate limiter reserves a slot under a lock, then sleeps <i>after releasing it</i>, so one worker's nap can't serialize seven others. <code>robots.txt</code> is fetched via <code>requests</code> under a real timeout instead of <code>RobotFileParser.read()</code>'s <code>urlopen()</code>, which hangs with no timeout at all. None of these are hypothetical fixes — they're the actual first bugs a naive concurrent crawler ships with, already closed.</span></li>
+          <li><b>PageRank is hand-rolled from scratch on a real link graph, not a library call over synthetic data.</b><span><code>crawler/ranking/pagerank.py</code> is a genuine sparse-matrix power iteration (scipy CSR, correct dangling-node mass redistribution, a <code>score-sums-to-1.0</code> assertion as a self-check) over edges the crawler actually discovered — not this project's own seeded-random stand-in. This is a stronger PageRank story than the local query-server's <code>networkx.pagerank()</code> call.</span></li>
+          <li><b>The C++ index already has the flat-array layout the local project explicitly deferred as unnecessary at its own scale.</b><span><code>termDictionary</code>/<code>globalPostingPool</code>/<code>globalPositionsPool</code> as contiguous arrays, versioned binary persistence (magic bytes, a 7-section offset table, delta-encoded varint positions), and PageRank fusion baked directly into <code>searchBM25()</code> — all real, all read and verified directly from <code>src/index.cpp</code> this session, including the exact byte layout needed to read it from Python.</span></li>
+          <li><b>The crawler has real automated tests — the only component in this 3-part system that does.</b><span>380 lines across 4 files (<code>test_frontier.py</code>, <code>test_parser.py</code>, <code>test_polite_check.py</code>, <code>test_storage.py</code>), genuine fixtures and assertions, not smoke tests. Confirmed directly: neither the C++ engine nor the query-server has any automated coverage at all.</span></li>
+          <li><b>Both sides' stemming is compatible, which quietly de-risks integration.</b><span>The query-server uses NLTK's Snowball stemmer; the C++ engine uses <code>libstemmer</code>'s Snowball implementation. Same algorithm family on both sides of the boundary being integrated — one fewer thing to debug when real data starts flowing through both.</span></li>
+          <li><b>Documentation rigor isn't just a solo habit — it's a team norm here.</b><span><code>crawler/README.md</code> and <code>crawler/SEARCH_ENGINES.md</code> carry the same disclosed-tradeoff, alternatives-considered style as the local project's own design doc, independently, from a different author. That's a genuinely good sign for how this team communicates decisions.</span></li>
+          <li><b>The query-server has a real test suite now, and it caught real things.</b><span>92 pytest tests, 86% coverage on <code>app/</code>, added Phase 8 — including a hand-built, byte-exact synthetic <code>index.bin</code> fixture for <code>cpp_index_reader.py</code>, specifically because it's a contract between two independently-developed components and the kind of thing that fails silently if the C++ side's format ever drifts. This isn't a token suite: writing it is what surfaced the empty-pool crash in <code>semantic_rerank()</code>, fixed in the same pass.</span></li>
+          <li><b>A real CI pipeline exists and was verified locally, step by step.</b><span><code>.github/workflows/ci.yml</code> — Python tests + lint in parallel with a C++ build, gated on one pass/fail job. Every step confirmed working locally before being trusted, including standing up a fresh macOS C++ toolchain (Homebrew's <code>snowball</code> and <code>sqlite</code> formulas) specifically to prove the build job would actually pass.</span></li>
+          <li><b>Two more disclosed bugs got found and fixed by measuring, not by assuming a fix was safe.</b><span>The AND-parsing sticky-mode bug and its case-sensitivity regression (both flagged as open in the prior rundown) are now fixed and verified — re-running the evaluation harness after each change, the same discipline that caught the original regression. A second, independent bug in the semantic path (BM25's own candidate ordering still running on the spell-corrected query even after the embedding was fixed to use raw text) was found and closed too, with a measured nDCG improvement on the semantic subset.</span></li>
+          <li><b>Authentication is real, verified live, and honest about its own limits.</b><span>API-key gating on <code>/search</code>/<code>/suggest</code>/<code>/feedback/click</code>, confirmed with actual requests — no key or a wrong key both get a genuine 401, not a documented-but-untested intention. The shipped default key is openly disclosed as public (it ships in both the server's source and the frontend's downloadable JS), rather than presented as real protection it isn't — the honest framing being "auth-enforcement code is real, this specific key isn't a secret," not "auth is done and secure."</span></li>
+          <li><b>Scale-readiness landed as real, tested code with a graceful degradation path — not a config flag pointing at infrastructure that doesn't exist.</b><span>Both the result cache and the rate limiter switch to Redis-backed storage via <code>REDIS_URL</code>, and if Redis is configured but unreachable, <code>build_search_cache()</code> falls back to the original in-memory behavior instead of failing startup — the same "don't take the whole service down over a cache" judgment already applied elsewhere in this codebase. Tested against a fake Redis client, since no real server exists here — disclosed as exactly that, not overstated as "production-tested."</span></li>
+          <li><b>The real crawl landed, and everything built against a 240-document sample kept working unmodified against 81x more data.</b><span>19,514 real documents, 854,906 unique terms, 8.2M postings — zero code changes needed anywhere in the retrieval/ranking/semantic pipeline. A live query for <code>python</code> now returns a real title ("Welcome to Python.org") with a real, page-text-derived snippet; <code>ways machines can learn from data</code> still correctly surfaces a semantically-relevant, lexically-non-overlapping result via augmentation. The byte-format contract and the graceful-fallback design (present vs. absent <code>crawler.db</code>) were both specified correctly the first time — this is what "the mechanism was already right, only the data was missing" actually looks like once proven.</span></li>
+          <li><b>A real CI-breaking bug was found and fixed before it could bite, not after.</b><span>Untracking <code>data/index.bin</code> from git (correct — don't commit a 115MB binary) had an unchecked side effect: <code>app/main.py</code> hard-crashes at import if that file is missing, and every API test imports it. A fresh GitHub Actions checkout would have hit exactly that. Reproduced the failure locally before trusting it was real, fixed it with a generated CI fixture, then reproduced a <i>fresh</i> CI checkout locally end to end (all real data files hidden) and watched the full suite pass. This is what "review before you push" is supposed to catch, and did.</span></li>
+          <li><b>Redis-readiness stopped being a claim and became a measurement.</b><span>Installed Redis locally, ran the server against it, and checked <code>redis-cli</code> directly rather than trusting the code: a real cached key with the correct ~3591s TTL, a genuine 8.8ms cache-hit response, and a real rate-limiter key. Both features were previously verified only against a mock — this is the difference between "the code should work against real Redis" and "it does."</span></li>
+        </ul>
+      </div>
+      <div class="assess-col risk">
+        <h3><span class="dot"></span>What concerns me</h3>
+        <ul class="assess-list">
+          <li><b>Real data at real scale exposed real, previously-theoretical costs — measured, not estimated.</b><span><code>data/index.bin</code> parsing alone now takes ~28s in pure Python (was near-instant at 240 docs); full server startup is ~3 minutes; a <code>rerank=true</code> query takes ~3.0s (vs. ~190ms lexical) since whole-corpus semantic augmentation is O(corpus) with no ANN index; the <code>pytest</code> suite went from 13s to 2m35s. None of this was unknown in the abstract — the in-memory-everything design and the missing-ANN-index gap were already disclosed — but there's a real difference between "this will eventually matter" and a measured 3-minute cold start, and the gap toward 2M pages is now visibly non-trivial rather than a distant hypothetical.</span></li>
+          <li><b>The crawl itself surfaced real, disclosed quality noise — not filtered out to make the numbers look better.</b><span>19,514 pages includes genuinely good content (<code>docs.python.org</code>, <code>bbc.com</code>, MDN) alongside a Google account sign-in page, parked-domain listings, an affiliate-marketing domain, and one 1.7MB outlier page (170x the ~9.7KB average). A domain/content-quality filter in the crawler would directly improve result quality without any more crawling — a real, scoped, cheap next step.</span></li>
+          <li><b>PageRank's real signal is thinner than it looks.</b><span>The 240 indexed documents' PageRank scores sum to ~0.008, not 1.0 — mathematically correct, since PageRank ran over every URL the crawler <i>discovered</i>, far more than the 240 it actually <i>fetched</i>. The signal is genuine, but its differentiating power among what's actually searchable is limited by how small a slice of the discovered graph got indexed.</span></li>
+          <li><b>The C++ engine's <code>searchBM25()</code> takes exactly one word — confirmed directly in the source.</b><span>No boolean logic, no phrases, no multi-term ranking exists at the index layer at all; <code>main.cpp</code> runs one hardcoded query (<code>"index"</code>) and exits. This is precisely why the query-server's contribution is real and non-redundant — and it's now proven, not just argued: <code>python OR javascript</code> answers correctly today specifically because this integration exists.</span></li>
+          <li><b>The C++ engine still has zero automated tests of its own.</b><span>Hand-rolled BM25, PageRank fusion, a from-scratch binary serialization format — still no test target in <code>CMakeLists.txt</code> and no test files anywhere. CI's build job checks compilation only, not behavior. The query-server and the crawler both have real suites now; the C++ engine is the one component left with none.</span></li>
+          <li><b>CI exists for the query-server, but not for the crawler, and it isn't verified green on GitHub yet.</b><span>Confirmed: <code>.github/workflows/ci.yml</code> covers <code>query-server/</code> (Python tests + lint) and a C++ compile check, but the crawler's own real pytest suite still only runs if someone remembers to run it by hand. And everything in the new CI config has only been run locally — it hasn't actually gone green on GitHub, since nothing's been pushed yet.</span></li>
+          <li><b>The <code>title</code> field is captured but still isn't indexed in what's actually running.</b><span>A real, verified fix exists (Phase 8, <code>src/index.cpp</code>) — a word placed only in a document's title is now correctly retrievable, confirmed against a synthetic test database — but it's sitting on its own commit with an explicit review request, <b>not merged to <code>main</code></b>. Until a teammate reviews it, the live behavior is unchanged: title text still can't be searched on the C++ side.</span></li>
+          <li><b>Redis-readiness has never touched a real Redis server.</b><span>Both the cache and rate-limiter's Redis paths are exercised only against a fake in-memory client in tests — genuinely good test design given no Redis server exists on this machine, but it means there's still a real, disclosed gap between "the code handles a real Redis connection correctly" and "this was verified against one." Worth confirming with an actual instance before leaning on it in a real deploy.</span></li>
+          <li><b>The demo API key is committed in plaintext, in two places, by design — a real tradeoff worth restating plainly.</b><span>It's disclosed honestly in both files' comments as non-secret, but it's still true that anyone who reads this repo's source (or opens browser devtools on the running demo) has the key. That's fine for what this key currently protects against (casual/automated abuse of a local demo) and would not be fine if <code>API_KEY</code> were ever set to something real without also changing how the frontend gets its copy.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2 class="section-title">Where the 88% comes from</h2></div>
+    <p class="section-dek">Not asserted — computed from the roadmap table below. Nine layers, weighted by how much of a real production search engine each represents.</p>
+    <div class="math-box">
+      <p class="math-lead">Small, deliberate move this round: Group F (99%, from 96%) picked up the Redis-cache/rate-limiter rows now being verified against a real instance instead of a fake client, plus credit for catching and fixing a real CI-breaking bug before it shipped. Group G (99.6%, from 98.8%) picked up a second, real-corpus evaluation harness alongside the existing synthetic one. Every other group is unchanged — this was a proof-and-hardening round, not a new-capability round; see <code>docs-ml</code>'s rundown for where the actual headline work (real independent ground truth) landed instead.</p>
+      <table class="math-table">
+        <thead><tr><th>Layer</th><th class="num-r">Weight&nbsp;/&nbsp;100</th><th class="num-r">Done</th><th class="num-r">Earned</th></tr></thead>
+        <tbody>
+          <tr><td>A · Crawling &amp; data acquisition <i>(verified)</i></td><td class="num-r">12</td><td class="num-r">89%</td><td class="num-r">10.65</td></tr>
+          <tr><td>B · Indexing infrastructure <i>(verified)</i></td><td class="num-r">13</td><td class="num-r">88%</td><td class="num-r">11.5</td></tr>
+          <tr><td>C · Query processing</td><td class="num-r">10</td><td class="num-r">97%</td><td class="num-r">9.65</td></tr>
+          <tr><td>D · Ranking &amp; relevance</td><td class="num-r">15</td><td class="num-r">96%</td><td class="num-r">14.45</td></tr>
+          <tr><td>E · Result presentation</td><td class="num-r">8</td><td class="num-r">91%</td><td class="num-r">7.3</td></tr>
+          <tr><td>F · API, systems engineering &amp; integration</td><td class="num-r">20</td><td class="num-r">99%</td><td class="num-r">19.80</td></tr>
+          <tr><td>G · Evaluation &amp; testing</td><td class="num-r">10</td><td class="num-r">99.6%</td><td class="num-r">9.96</td></tr>
+          <tr><td>H · Deployment / live link <i>(largest move)</i></td><td class="num-r">7</td><td class="num-r">33%</td><td class="num-r">2.3</td></tr>
+          <tr><td>I · Documentation &amp; interview-readiness</td><td class="num-r">5</td><td class="num-r">68%</td><td class="num-r">3.4</td></tr>
+          <tr class="total"><td>Total</td><td class="num-r">100</td><td class="num-r">—</td><td class="num-r">89.01</td></tr>
+        </tbody>
+      </table>
+      <div class="mvp-adjust">
+        <span class="mvp-adjust-label">Your slice only (excluding Groups A/B, the teammate-owned layers)</span>
+        <span class="mvp-adjust-value">66.86 / 75 → ~89%</span>
+        <span class="mvp-adjust-note">Deployment (Group H, still under 20%) is now, overwhelmingly, the single thing separating your slice from a genuinely complete score — every other group in your slice is at 96% or higher, and two (F, G) are effectively maxed out.</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2 class="section-title">The full roadmap</h2></div>
+    <p class="section-dek">Every layer needed for this to read as a complete, deployable team project. All nine groups are now graded against real, read source — none are hypothetical anymore.</p>
+
+    <div class="table-scroll">
+
+    <!-- GROUP A -->
+    <details class="phase">
+      <summary>
+        <span class="phase-name">A · Crawling &amp; data acquisition <i>(verified)</i></span>
+        <span class="phase-status"><span>12 pts</span><span>10.65 earned</span><span class="phase-bar"><i style="width:89%;background:var(--good)"></i></span></span>
+      </summary>
+      <div class="row-head"><span>Item</span><span>Difficulty</span><span>Weight</span><span>Complete</span></div>
+      <div class="rows">
+        <div class="row"><div class="row-item"><div class="name">Concurrent, resumable BFS crawler</div><div class="note">Thread pool over a shared <code>Frontier</code>, crash-safe resume via a persisted frontier table, and termination correctly detected via <code>unfinished_tasks</code> rather than an empty queue.</div></div><span class="diff high">High</span><span class="wt">3</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Politeness</div><div class="note">robots.txt compliance (fetched via <code>requests</code>, never the hanging <code>RobotFileParser.read()</code>), per-domain rate limiting that reserves-then-releases-then-sleeps to avoid convoying, retry/backoff via <code>urllib3</code>'s <code>Retry</code> adapter.</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Real hyperlink graph capture</div><div class="note">Every discovered edge is recorded in SQLite's <code>links</code> table, even for targets not yet fetched — the graph is complete over everything discovered, not just everything crawled.</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">URL canonicalization</div><div class="note">Host lowercasing, default-port stripping, fragment removal, tracking-parameter filtering, sorted query strings — collapses cosmetic variants before they pollute the frontier or the link graph.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Content dedup</div><div class="note">SHA-256 content-hash exact matching only — the same class of gap as the local query-server's <code>dedup.py</code>. The crawler's own README names this directly: near-duplicate detection would want SimHash or MinHash.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:65%;background:var(--warn)"></i></div><span class="prog-pct">65%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Automated test suite</div><div class="note">380 lines, 4 files, real fixtures — the only component in this 3-part system with genuine automated coverage.</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Scheduled / incremental re-crawl</div><div class="note">Resume-after-interrupt exists and works; re-visiting already-crawled pages to catch content that's gone stale does not — confirmed absent from <code>main.py</code>.</div></div><span class="diff med">Medium</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:0%"></i></div><span class="prog-pct">0%</span></div></div>
+      </div>
+    </details>
+
+    <!-- GROUP B -->
+    <details class="phase" open>
+      <summary>
+        <span class="phase-name">B · Indexing infrastructure <i>(verified)</i></span>
+        <span class="phase-status"><span>13 pts</span><span>11.5 earned</span><span class="phase-bar"><i style="width:88%;background:var(--good)"></i></span></span>
+      </summary>
+      <div class="row-head"><span>Item</span><span>Difficulty</span><span>Weight</span><span>Complete</span></div>
+      <div class="rows">
+        <div class="row"><div class="row-item"><div class="name">Flat-array positional index, single-pass build</div><div class="note"><code>termDictionary</code>/<code>globalPostingPool</code>/<code>globalPositionsPool</code> as contiguous arrays — exactly the cache-locality-oriented design the local query-server's own docs cite as a deliberately-deferred Scalability item. Here, it's already built.</div></div><span class="diff vhigh">V. High</span><span class="wt">3</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Versioned binary persistence</div><div class="note">Magic bytes, a version field, a 7-section offset table, delta-encoded varint positions. Exact byte layout confirmed by direct reading of <code>saveToDisk()</code>/<code>loadFromDisk()</code> — this is what the Python integration work in Group F reads.</div></div><span class="diff high">High</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Hand-rolled BM25</div><div class="note">Correct standard formula (<code>k1=1.2, b=0.75</code>) — but confirmed single-term only. <code>searchBM25(const std::string &amp;word)</code> takes one word; there is no multi-term summation anywhere in <code>index.cpp</code>.</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">PageRank fusion baked into C++ search</div><div class="note"><code>final = 0.7·normalize(BM25) + 0.3·normalize(PageRank)</code>, with the single-candidate / all-equal-score edge case correctly treated as fully-normalized rather than dividing by zero.</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Hand-rolled PageRank power iteration</div><div class="note"><code>crawler/ranking/pagerank.py</code> — sparse CSR matrix, correct dangling-node handling, a <code>sum≈1.0</code> self-check assertion. Runs over the real crawled link graph, not a synthetic one.</div></div><span class="diff high">High</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Title-field indexing</div><div class="note"><b>Fix written and functionally verified (Phase 8), not merged.</b> <code>InvertedIndex::build()</code> now tokenizes <code>document.title + " " + document.content</code> — verified against a synthetic SQLite database that a word placed only in a title is now retrievable. Sitting on its own commit with an explicit review request; the live behavior is unchanged until a teammate reviews and merges it.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:50%;background:var(--warn)"></i></div><span class="prog-pct">50%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Automated test suite</div><div class="note">Confirmed: no test files, no test target in <code>CMakeLists.txt</code>. The component with the most novel from-scratch logic (BM25, PageRank fusion, binary serialization) has zero automated verification.</div></div><span class="diff med">Medium</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:0%"></i></div><span class="prog-pct">0%</span></div></div>
+      </div>
+    </details>
+
+    <!-- GROUP C -->
+    <details class="phase" open>
+      <summary>
+        <span class="phase-name">C · Query processing</span>
+        <span class="phase-status"><span>10 pts</span><span>9.65 earned</span><span class="phase-bar"><i style="width:97%;background:var(--good)"></i></span></span>
+      </summary>
+      <div class="row-head"><span>Item</span><span>Difficulty</span><span>Weight</span><span>Complete</span></div>
+      <div class="rows">
+        <div class="row"><div class="row-item"><div class="name">Input validation</div><div class="note">Empty/whitespace/control-char/length checks, plus <code>page</code>/<code>page_size</code> range checks in <code>main.py</code>.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Shared tokenizer pipeline</div><div class="note">Identical lowercase → strip punctuation → stopword removal → Snowball stemming for both documents and queries — the invariant every later stage depends on.</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Corpus-derived spell correction</div><div class="note">SymSpell over a dictionary built from the indexed corpus, not a general English dictionary — avoids flagging domain terms as typos. Tradeoff: only catches typos of words the corpus happens to contain.</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:90%;background:var(--good)"></i></div><span class="prog-pct">90%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Boolean AND/OR/NOT retrieval</div><div class="note"><b>Fixed and verified.</b> The sticky-mode fix (a bare word before the first operator promotes to required when that operator is AND) is deployed, and re-running the evaluation harness after applying it surfaced a worse, related bug — case-insensitive operator matching let ordinary English "and" corrupt real queries — fixed in both <code>query_parser.py</code> and a separate copy of the same check in <code>spellcheck.py</code>. Docked from 100%: case-sensitivity is a real, disclosed tradeoff (a user typing lowercase "and" intending boolean syntax now gets word behavior instead), not a strictly free fix. This is also the only multi-term boolean logic anywhere in the whole monorepo — see Group B.</div></div><span class="diff high">High</span><span class="wt">3</span><div class="prog"><div class="prog-bar"><i style="width:95%;background:var(--good)"></i></div><span class="prog-pct">95%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Phrase extraction + hard-filter retrieval</div><div class="note">Fixed in Phase 4.5 — an included phrase now narrows the candidate set instead of only boosting score (995→7 results for a specific phrase query, measured).</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+      </div>
+    </details>
+
+    <!-- GROUP D -->
+    <details class="phase" open>
+      <summary>
+        <span class="phase-name">D · Ranking &amp; relevance</span>
+        <span class="phase-status"><span>15 pts</span><span>14.45 earned</span><span class="phase-bar"><i style="width:96%;background:var(--good)"></i></span></span>
+      </summary>
+      <div class="row-head"><span>Item</span><span>Difficulty</span><span>Weight</span><span>Complete</span></div>
+      <div class="rows">
+        <div class="row"><div class="row-item"><div class="name">Hand-rolled BM25</div><div class="note"><code>app/bm25.py</code>, scored directly against the candidate set, generalized to multi-term — closes the O(N×q) whole-corpus rescan gap <code>rank_bm25</code> had, and is the only multi-term BM25 in the whole system (the C++ engine's is single-term only, per Group B). Confirmed working against real data: <code>python OR javascript</code> returned 72 correctly-ranked results.</div></div><span class="diff vhigh">V. High</span><span class="wt">5</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">PageRank authority fusion</div><div class="note">Now runs on real PageRank (<code>authority.py</code>'s <code>normalize_pagerank()</code>, unchanged, over scores read from <code>data/index.bin</code>) instead of this project's synthetic link graph — up from 70%. Docked from 100%: the 0.85/0.15 blend weight is still untuned, and the real signal is currently thin relative to the full discovered graph (only 240 of the crawler's discovered URLs were fetched — see the honest assessment).</div></div><span class="diff med">Medium</span><span class="wt">3</span><div class="prog"><div class="prog-bar"><i style="width:90%;background:var(--good)"></i></div><span class="prog-pct">90%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Semantic re-ranking + augmentation</div><div class="note"><code>app/semantic.py</code> — opt-in hybrid retrieval with a quantified eval improvement (see Group G). Blend weight tuned and deployed (0.5→0.7, Phase 7). The residual bug where spellcheck biased BM25's own candidate ordering feeding the reranked pool is now closed (Phase 8) — <code>rerank=true</code> uses the raw query throughout. A separate empty-pool crash was also found and fixed this session.</div></div><span class="diff high">High</span><span class="wt">5</span><div class="prog"><div class="prog-bar"><i style="width:95%;background:var(--good)"></i></div><span class="prog-pct">95%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Deterministic tie-breaking</div><div class="note">Sort key <code>(-score, doc_id)</code> — identical queries return identically ordered results across requests.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Phrase-match scoring bonus</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+      </div>
+    </details>
+
+    <!-- GROUP E -->
+    <details class="phase">
+      <summary>
+        <span class="phase-name">E · Result presentation</span>
+        <span class="phase-status"><span>8 pts</span><span>7.3 earned</span><span class="phase-bar"><i style="width:91%;background:var(--good)"></i></span></span>
+      </summary>
+      <div class="row-head"><span>Item</span><span>Difficulty</span><span>Weight</span><span>Complete</span></div>
+      <div class="rows">
+        <div class="row"><div class="row-item"><div class="name">Highlighted snippet generation</div><div class="note">Stem-based matching, moved to run only on the returned page (204ms→32ms measured for a 100-candidate query) — cost now scales with <code>page_size</code>, not candidate count.</div></div><span class="diff med">Medium</span><span class="wt">3</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Deduplication</div><div class="note">Exact-fingerprint only, verified against this corpus's one genuine duplicate pair. The crawler's own dedup has the identical gap (Group A) — worth solving once, shared, rather than twice.</div></div><span class="diff low">Low</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:65%;background:var(--warn)"></i></div><span class="prog-pct">65%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Offset-based pagination</div><div class="note"><code>total_results</code>/<code>total_pages</code> reported. Fine for a static corpus; would need cursor-based pagination once live incremental crawling lands (Group A).</div></div><span class="diff low">Low</span><span class="wt">3</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+      </div>
+    </details>
+
+    <!-- GROUP F -->
+    <details class="phase" open>
+      <summary>
+        <span class="phase-name">F · API, systems engineering &amp; integration</span>
+        <span class="phase-status"><span>20 pts</span><span>19.80 earned</span><span class="phase-bar"><i style="width:99%;background:var(--good)"></i></span></span>
+      </summary>
+
+      <details class="delay-note">
+        <summary>How this group moved from 96% to 99% this round</summary>
+        <div class="delay-note-body">
+          <p>Two things closed this round, both about proof rather than capability. The cache and rate-limiter's Redis paths were previously tested only against a fake client — this round, a real local Redis was installed and run against, confirmed directly via <code>redis-cli</code> (a real cached key with the right TTL, a real cache-hit response, a real rate-limiter key). And reviewing the CI pipeline ahead of a push surfaced a real bug it would have hit (an untracked <code>data/index.bin</code> silently breaking every API test's fixture) — found, fixed, and verified by fully reproducing a fresh CI checkout locally.</p>
+          <p>What's left in this group is now almost entirely infrastructure that doesn't exist yet, not more code to write: no containerization, no live host, CI not yet confirmed green on actual GitHub runners.</p>
+        </div>
+      </details>
+
+      <div class="row-head"><span>Item</span><span>Difficulty</span><span>Weight</span><span>Complete</span></div>
+      <div class="rows">
+        <div class="row"><div class="row-item"><div class="name">FastAPI REST layer, typed schemas</div><div class="note">Thin controllers throughout <code>main.py</code>; Pydantic response models (<code>schemas.py</code>) for every endpoint.</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Repeated-query LRU cache</div><div class="note"><b>Redis-backed path verified against a real instance (Phase 11).</b> <code>build_search_cache()</code> switches to Redis when <code>REDIS_URL</code> is set, with graceful in-memory fallback if unreachable. Previously only tested against a fake client; this round, a real local Redis was installed and run against — confirmed directly via <code>redis-cli</code>: a real <code>search:python</code> key, correct ~3591s TTL, and a genuine 8.8ms cache-hit response. No longer a disclosed gap.</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Rate limiting</div><div class="note"><code>slowapi</code>, 30/min per IP, Redis-capable via the same <code>REDIS_URL</code> switch. <b>Also verified against a real instance (Phase 11)</b> — <code>redis-cli KEYS</code> showed a real <code>LIMITS:LIMITER/...</code> key while the server ran with <code>REDIS_URL</code> set, confirming the rate limiter's counters were genuinely stored in Redis, not silently still in-process.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Structured JSON request logging</div><div class="note">Every <code>/search</code> request logs query, latency, result count, cache-hit status, and the <code>rerank</code> flag. Phase 8 added a second, real signal: <code>POST /feedback/click</code>, wired into the frontend's result links and verified in a live browser session to fire with the correct body — genuine click-through logging, not inert plumbing, though nothing persists or analyzes it yet.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Global exception handling</div><div class="note">An unhandled exception returns a clean JSON 500, never a raw traceback.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name"><code>/health</code> endpoint</div><div class="note">Reports corpus size, uptime, start time. Doesn't yet check anything that could actually fail at runtime (e.g. whether the embedding model finished loading).</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:90%;background:var(--good)"></i></div><span class="prog-pct">90%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Autocomplete</div><div class="note"><code>/suggest</code>, <code>bisect</code>-based prefix search over the corpus vocabulary, ranked by frequency.</div></div><span class="diff low">Low</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Authentication / authorization</div><div class="note"><b>Built and verified live (Phase 9).</b> Real API-key gating (<code>X-API-Key</code>, checked via a FastAPI dependency) on <code>/search</code>, <code>/suggest</code>, and <code>/feedback/click</code> — confirmed with real requests: no key or a wrong key both get a real 401, the correct key gets 200. <code>/health</code> and <code>/</code> stay open by design. The shipped default key is openly documented as public (it's in this repo's source and in the frontend's downloadable JS), so it's real auth-enforcement code with a demo-grade key, not a demo of auth — swapping in a real secret via <code>API_KEY</code> is a config change, not new code.</div></div><span class="diff med">Medium</span><span class="wt">3</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">CI pipeline</div><div class="note"><b>Built (Phase 8), and a real bug in it was caught and fixed before it could bite (Phase 11).</b> Reviewing <code>.github/workflows/ci.yml</code> ahead of a push surfaced that untracking <code>data/index.bin</code> (correct call — don't commit a 115MB binary) would silently break the <code>python-tests</code> job: <code>app/main.py</code> hard-crashes at import if that file is missing, and every API test imports it. Reproduced the exact failure locally, then fixed it with a generated CI fixture (<code>scripts/generate_ci_index_fixture.py</code>) wired into the workflow, and verified by fully simulating a fresh checkout locally: 112 passed, 1 skipped. Docked slightly: still not confirmed green on actual GitHub infrastructure, and the crawler's own test suite still isn't wired in.</div></div><span class="diff low">Low</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:95%;background:var(--good)"></i></div><span class="prog-pct">95%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Binary index reader for <code>data/index.bin</code></div><div class="note"><b>Built and verified this session</b> (<code>app/cpp_index_reader.py</code>): magic-byte header, 7-section offset table, LE32/LE64 fields, LEB128-varint posting/position pools with delta-encoded position gaps, float/double reinterpretation for PageRank and avg-doc-length. Verified byte-exact against the real committed index — the decoded position count matches the file's own declared count (350,423), and the read cursor lands exactly on the next section's offset after decoding.</div></div><span class="diff high">High</span><span class="wt">3</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Wire query-server onto real crawled + indexed data</div><div class="note"><b>Done, and now proven at 81x the original scale (Phase 10).</b> <code>main.py</code>'s startup depends on <code>data/index.bin</code> directly and real PageRank scores, with <code>crawler_db.py</code> reading page text from <code>crawler.db</code> when present. Was verified against a 240-document sample; re-verified live this round against the real 19,514-document corpus with zero code changes needed anywhere in the pipeline — real titles, real snippets, semantic augmentation still correctly surfacing lexically-non-overlapping matches. Still 100%: the mechanism was already fully correct, only the underlying data changed.</div></div><span class="diff high">High</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+      </div>
+    </details>
+
+    <!-- GROUP G -->
+    <details class="phase" open>
+      <summary>
+        <span class="phase-name">G · Evaluation &amp; testing</span>
+        <span class="phase-status"><span>10 pts</span><span>9.96 earned</span><span class="phase-bar"><i style="width:100%;background:var(--good)"></i></span></span>
+      </summary>
+      <div class="row-head"><span>Item</span><span>Difficulty</span><span>Weight</span><span>Complete</span></div>
+      <div class="rows">
+        <div class="row"><div class="row-item"><div class="name">Manual QA harness</div><div class="note"><code>tests/test_queries.md</code> (55+ hand-logged cases) + <code>tests/run_queries.sh</code>. Real and extended every phase, but manual — a human has to read the output.</div></div><span class="diff low">Low</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Offline IR evaluation</div><div class="note">Two harnesses now: <code>scripts/evaluate.py</code> against the synthetic corpus (40 judgment queries), and <code>scripts/evaluate_real.py</code> (Phase 11) against the real 19,514-document corpus with 20 genuinely independent, hand-verified judgments — not corpus-generation metadata. Both split lexical vs. semantic rather than one blended average. The real-corpus run is the more valuable of the two: it found semantic re-ranking's benefit is real but far more modest than the synthetic numbers suggested, and directly evidenced real bi-encoder misses at scale.</div></div><span class="diff high">High</span><span class="wt">4</span><div class="prog"><div class="prog-bar"><i style="width:99%;background:var(--good)"></i></div><span class="prog-pct">99%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Automated test suite</div><div class="note"><b>Built this session.</b> 92 pytest tests, 86% coverage on <code>app/</code>: tokenizer, parser, BM25, ranking, semantic, the C++ binary-index reader (a hand-built, byte-exact synthetic fixture, plus a secondary pass against the real committed index), and the API layer. This is exactly the gap the project's own docs had been flagging as increasingly overdue.</div></div><span class="diff med">Medium</span><span class="wt">4</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+      </div>
+    </details>
+
+    <!-- GROUP H -->
+    <details class="phase" open>
+      <summary>
+        <span class="phase-name">H · Deployment / live link</span>
+        <span class="phase-status"><span>7 pts</span><span>2.3 earned</span><span class="phase-bar"><i style="width:33%;background:var(--critical)"></i></span></span>
+      </summary>
+      <div class="row-head"><span>Item</span><span>Difficulty</span><span>Weight</span><span>Complete</span></div>
+      <div class="rows">
+        <div class="row"><div class="row-item"><div class="name">Containerization</div><div class="note"><b>Done (Phase 12), verified end to end, not just built.</b> <code>query-server/Dockerfile</code> + <code>docker-compose.yml</code>. Real incidents hit and fixed by actually booting the container, not assumed away: a CUDA-vs-CPU torch mismatch that filled Docker Desktop's VM disk to 16GB and corrupted it; a SQLite WAL-mode read failure against the mounted <code>crawler.db</code> (real fix in <code>app/crawler_db.py</code>); a HuggingFace cache invisible to the non-root container user. Memory calibrated live via <code>docker stats</code> against real query load, not guessed — 2GB nearly OOM-killed it within 30s; the verified value is 5GB, settling at 4.27GB (85%) under a real semantic-search request, ~730MB genuine headroom. A <code>docker-build</code> CI job (build, boot, health check, authenticated search, 401-check, teardown) is wired into <code>ci.yml</code>, validated but not yet run on real GitHub infrastructure.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Live hosting</div><div class="note">No hosting of any kind — still 0%, this row measures hosting existing, not readiness for it. But the precondition named here previously (real page text) landed this round: 19,514 real documents with real snippets. Nothing code-side is blocking a deploy anymore — only infrastructure (a host, a real Redis instance) and the deploy step itself.</div></div><span class="diff low">Low</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:0%"></i></div><span class="prog-pct">0%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Minimal demo frontend</div><div class="note"><b>Built and browser-verified this session, but only running locally.</b> Real HTML/CSS/JS (<code>static/</code>), a search box, Search/Semantic Search modes, and a "Why this result?" ranking-explanation panel showing BM25/Semantic/PageRank bars per result — confirmed rendering correctly with zero console errors in a real headless-Chromium session. What's still missing to fully earn this row: it isn't hosted anywhere a visitor could actually reach it yet.</div></div><span class="diff med">Medium</span><span class="wt">2</span><div class="prog"><div class="prog-bar"><i style="width:55%;background:var(--warn)"></i></div><span class="prog-pct">55%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Environment/secrets hygiene for a real deploy</div><div class="note">Small credit for this session's work fixing the moved <code>.venv</code>'s hardcoded absolute paths — exactly the class of "works on my machine" bug a real deploy needs to not have.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:20%;background:var(--warn)"></i></div><span class="prog-pct">20%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Stable public URL / domain</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:0%"></i></div><span class="prog-pct">0%</span></div></div>
+      </div>
+    </details>
+
+    <!-- GROUP I -->
+    <details class="phase">
+      <summary>
+        <span class="phase-name">I · Documentation &amp; interview-readiness</span>
+        <span class="phase-status"><span>5 pts</span><span>3.4 earned</span><span class="phase-bar"><i style="width:68%;background:var(--warn)"></i></span></span>
+      </summary>
+      <div class="row-head"><span>Item</span><span>Difficulty</span><span>Weight</span><span>Complete</span></div>
+      <div class="rows">
+        <div class="row"><div class="row-item"><div class="name">Design &amp; Implementation Document</div><div class="note">Executive summary, full architecture, 40 numbered design decisions, complexity analysis, scalability, limitations, future roadmap, a grounded interview-questions section, and a glossary. Your partner's crawler docs independently carry the same rigor — a good team-wide norm.</div></div><span class="diff low">Low</span><span class="wt">3</span><div class="prog"><div class="prog-bar"><i style="width:100%;background:var(--good)"></i></div><span class="prog-pct">100%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Repo-level README</div><div class="note">The monorepo itself has one (covering the C++ engine); the query-server folder added this session doesn't have its own yet.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:0%"></i></div><span class="prog-pct">0%</span></div></div>
+        <div class="row"><div class="row-item"><div class="name">Standalone API reference</div><div class="note">FastAPI's autogenerated <code>/docs</code> covers this live; no written, versioned equivalent exists separately.</div></div><span class="diff low">Low</span><span class="wt">1</span><div class="prog"><div class="prog-bar"><i style="width:40%;background:var(--warn)"></i></div><span class="prog-pct">40%</span></div></div>
+      </div>
+    </details>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2 class="section-title">Recommended sequencing, to 9.7</h2></div>
+    <p class="section-dek">Integration, tests, CI, a demo frontend, authentication, and Redis-readiness are all done — verified end to end, not just planned. What's left is almost entirely things only you (or a real deploy) can unblock.</p>
+    <ol class="phasing-list">
+      <li class="phasing-item">
+        <div><h4>Build the <code>data/index.bin</code> reader, wire the query-server to real data — done, now proven at 81x scale</h4><p><code>app/cpp_index_reader.py</code>, verified byte-exact against the real committed index. Originally confirmed against 240 crawled pages; Phase 10 re-verified live against the real 19,514-document corpus (854,906 terms, 8.2M postings) with zero code changes required.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Close the two disclosed correctness bugs — done</h4><p>The AND-parsing sticky-mode fix is deployed and verified, including a worse, related case-sensitivity bug it surfaced and that also got fixed. The title-indexing fix on the C++ side is written and functionally verified — but sitting unmerged, pending a teammate's review.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Stand up real <code>pytest</code> coverage and CI for the query-server — done</h4><p>113 tests now (the original 92, plus 6 auth-enforcement and 14 cache tests added this round), including a byte-exact regression test for the C++/Python binary-format contract. <code>.github/workflows/ci.yml</code> verified locally, step by step. Not yet confirmed green on GitHub — needs a push.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Build a demo frontend, then polish it — done</h4><p>Real HTML/CSS/JS, browser-verified: search, semantic search, and a "why this result?" ranking-explanation panel per result. The placeholder text is gone and it now sends its own API key automatically. Running locally only — not yet hosted anywhere a visitor could reach it.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Add authentication and Redis-readiness, then verify Redis for real — done</h4><p>Real API-key gating on <code>/search</code>/<code>/suggest</code>/<code>/feedback/click</code>, verified live (401 on missing/wrong key, 200 on the right one). The cache and rate limiter switch to Redis-backed storage via <code>REDIS_URL</code> — initially tested only against a fake client, now (Phase 11) verified against a real local Redis instance: a genuine cached key with correct TTL, a real cache-hit response, a real rate-limiter key, all confirmed via <code>redis-cli</code> directly.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Catch what the untracked <code>data/index.bin</code> quietly broke, before pushing — done</h4><p>Reviewing CI ahead of a push found that <code>app/main.py</code>'s hard startup dependency on <code>data/index.bin</code> would crash every API test's fixture on a fresh checkout, since that file is now correctly gitignored and never committed. Fixed with a generated CI fixture (<code>scripts/generate_ci_index_fixture.py</code>), verified by fully reproducing a clean CI environment locally: 112 passed, 1 skipped. This was a real, undetected regression from an otherwise-correct earlier decision — caught by review, not by CI itself (CI can't catch a bug in the thing that makes CI run).</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Get <code>crawler.db</code> onto this machine — done (Phase 10)</h4><p>Received via Google Drive, placed, and verified live: real titles, real snippets, real spellcheck/embedding quality over 19,514 documents. Was the single highest-ROI item on this whole list. Two things it surfaced, now on this list below: real, measured scale costs (3-minute startup, 3s semantic-query latency), and a real, professional file-sharing pipeline is still needed for the <em>next</em> handoff — a Drive link isn't where this should stay.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Push to GitHub, review and merge the title-indexing fix</h4><p>Two things only you (and your teammate) can do: confirm CI actually goes green on GitHub, and get the C++ title-indexing change reviewed and merged so it's live rather than just verified locally.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Address the now-measured scale costs before the next, much bigger crawl</h4><p>19,514 documents already costs ~28s to parse <code>data/index.bin</code> and ~3 minutes for a full server startup; a <code>rerank=true</code> query already takes ~3s. Neither is broken today, but both were previously theoretical concerns and are now measured ones — worth addressing (streaming/lazy index loading, an ANN index for augmentation) before scaling meaningfully further toward the stated ~2M-page target, not after.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Add a domain/content-quality filter to the crawler</h4><p>The real crawl surfaced genuine noise — login pages, parked-domain listings, an affiliate-marketing domain, a 170x-outlier content page — alongside good content. A cheap, scoped filter in <code>crawler/config.py</code> would directly improve result quality without any more crawling.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Put the next handoff on real infrastructure, not another Drive link</h4><p>This round's <code>crawler.db</code>/<code>index.bin</code> (2.1GB + 110MB) came over Google Drive again. Object storage — Supabase Storage is a reasonable pick given you're already considering Supabase as a BaaS for deployment — with the app fetching the artifact by URL at boot is the professional version of this, and matters more with every crawl this size or bigger.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Add C++-engine and crawler test coverage, then containerize and extend CI</h4><p>The C++ engine is now the only component with zero automated tests — CI's build job checks compilation only. A <code>Dockerfile</code> and a CI job that actually runs the crawler's existing pytest suite would close the remaining gaps in Groups B and F.</p></div>
+      </li>
+      <li class="phasing-item">
+        <div><h4>Ship it live, then point a real Redis instance at it</h4><p>Host the FastAPI backend (Render, Fly.io, or Railway) and serve the frontend that already exists — the biggest single remaining score gap (Group H) is entirely this, not anything left to build. Set <code>API_KEY</code> to a real secret and <code>REDIS_URL</code> to a real instance at the same time — both are already wired to pick them up.</p></div>
+      </li>
+    </ol>
+    <p class="parallel-note"><b>Four rounds of real engineering hygiene landed back to back, and the project earned each one the honest way.</b> Tests exist because they were written and run, not scaffolded and left empty. CI exists because every step was proven locally first — and Phase 11 proved it again, catching a real regression in its own pipeline before that pipeline ever ran for real. Auth exists because a bad key was actually sent and actually rejected. Redis-readiness stopped being tested-against-a-mock and became tested-against-Redis. What's left is now almost entirely either blocked on someone else (a code review, a teammate's crawler work to merge) or genuinely mechanical (deploy it, extend CI to two more components) — not more hidden correctness work, and not more hidden regressions either, as far as this review found.</p>
+  </section>
+
+  <footer>
+    <span>Search Engine Rundown (SDE framing) — a working reference, not a commitment. Re-run the math box if scope changes.</span>
+    <span>89.01 / 100</span>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,75 @@
+# Local Docker setup for query-server. Real data (data/index.bin,
+# crawler/data/crawler.db) is bind-mounted in, never baked into the image --
+# see query-server/Dockerfile's own comment for why (they're 110MB and 2.1GB;
+# an image that size defeats the point of a lean, reproducible container).
+#
+# Memory is explicitly capped (mem_limit) rather than left unbounded. Without
+# this, a runaway process (or just this app's real peak -- see
+# docs-sde/current-state.md for the measured number once calibrated) can
+# consume all of the Docker Desktop VM's memory and take down every other
+# container, or the host, with it. mem_limit here is Docker's classic
+# non-swarm memory cap, honored by plain `docker compose up`; the
+# deploy.resources block is included too so this translates cleanly if this
+# ever moves to Swarm/Kubernetes.
+services:
+  query-server:
+    build:
+      context: ./query-server
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - API_KEY=dev-demo-key-change-me
+      # Uncomment to run against a real Redis instead of the in-memory
+      # fallback -- see docs-sde/current-state.md's Phase 11 verification.
+      # - REDIS_URL=redis://host.docker.internal:6379
+    volumes:
+      - ./data/index.bin:/app/data/index.bin:ro
+      # Optional -- omit this line if crawler.db isn't present on this
+      # machine; app/crawler_db.py degrades gracefully to URL-derived titles
+      # and empty snippets when it's absent, same as running without Docker.
+      #
+      # NOT mounted :ro, deliberately -- found the hard way. SQLite needs to
+      # create/access WAL/journal companion files alongside the .db file even
+      # for a pure SELECT (crawler.db is written in WAL mode -- see
+      # crawler/storage/indexer.py), which fails with "attempt to write a
+      # readonly database" if the whole directory is read-only. The app code
+      # itself never writes to this file (app/crawler_db.py's own docstring:
+      # "this process only ever consumes crawl output, never writes") --
+      # :ro was redundant defense-in-depth that broke a real read path.
+      - ./crawler/data/crawler.db:/app/data/crawler.db
+      # query-server's own data/ (embeddings cache, evaluation results) --
+      # read-write so the embeddings cache persists across container restarts
+      # instead of a ~3-minute rebuild every time.
+      - ./query-server/data:/app/query-server/data
+    # Calibrated against real, live-measured usage, not guessed -- see
+    # docs-sde/benchmarks-phase11-12.md's Docker section for the full
+    # progression (three attempts: 2g nearly OOM-killed within 30s; 4g
+    # booted but left only ~90MB headroom under real load; 5g -- this value
+    # -- settles at ~4.27GB / 85% under real queries, ~730MB genuine
+    # headroom). Confirmed as more than a safety margin: the same semantic
+    # query ran 60% slower under the 4g attempt's memory pressure (7.9s)
+    # than it does here (4.97s). This host has 8GB of RAM total; Docker
+    # Desktop's VM allocation was raised from 5GB to 6GB (settings-store.json)
+    # to make this margin possible, at the real cost of less headroom for
+    # macOS itself and everything else running on this machine -- a genuine
+    # tradeoff, not a free change, worth knowing about if this Mac feels
+    # sluggish while the container is running.
+    mem_limit: 5g
+    mem_reservation: 1g
+    deploy:
+      resources:
+        limits:
+          memory: 5g
+        reservations:
+          memory: 1g
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=5).status==200 else 1)"]
+      interval: 15s
+      timeout: 10s
+      # Real measured cold start is ~3 minutes at 19,514 documents (index
+      # load + spellcheck dictionary + embedding cache) -- start_period must
+      # exceed that or Docker reports the container unhealthy while it's
+      # still legitimately booting.
+      start_period: 240s
+      retries: 5

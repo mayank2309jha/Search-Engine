@@ -1,0 +1,12 @@
+{
+  "bm25_weight": 1.0,
+  "pagerank_weight": 0.0,
+  "raw_coefficients": {
+    "bm25": 1.0353,
+    "pagerank": 0.0
+  },
+  "trained_on": "data/corpus.json's evaluation judgment set (scripts/evaluate.py's build_judgments()) -- 20 queries, programmatically-derived ground truth",
+  "training_examples": 7174,
+  "positive_examples": 720,
+  "method": "sklearn.linear_model.Ridge(positive=True, alpha=1.0), balanced sample weights, coefficients renormalized to sum to 1. positive=True chosen after an unconstrained fit returned a negative PageRank weight -- diagnosed as noise from this corpus's synthetic, uncorrelated-by-construction link graph, not a real finding worth deploying."
+}

@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.coverage
+data/index_cache.pkl
+data/embeddings_cache.pkl
+data/embeddings_cache_cpp.pkl

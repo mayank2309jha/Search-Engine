@@ -1,0 +1,382 @@
+{
+  "rows": [
+    {
+      "query": "python 3.14 new features",
+      "type": "lexical",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.1,
+        "mrr": 0.25,
+        "ndcg_at_10": 0.43067655807339306,
+        "num_results": 13864
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 0.5,
+        "ndcg_at_10": 0.6309297535714575,
+        "num_results": 13879
+      }
+    },
+    {
+      "query": "python enhancement proposals index",
+      "type": "lexical",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.1,
+        "mrr": 0.125,
+        "ndcg_at_10": 0.31546487678572877,
+        "num_results": 813
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 828
+      }
+    },
+    {
+      "query": "python glossary",
+      "type": "lexical",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.0,
+        "mrr": 0.04,
+        "ndcg_at_10": 0.0,
+        "num_results": 136
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 151
+      }
+    },
+    {
+      "query": "python deprecations",
+      "type": "lexical",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.1,
+        "mrr": 0.5,
+        "ndcg_at_10": 0.6309297535714575,
+        "num_results": 119
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 134
+      }
+    },
+    {
+      "query": "python module index",
+      "type": "lexical",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.0,
+        "mrr": 0.045454545454545456,
+        "ndcg_at_10": 0.0,
+        "num_results": 516
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 0.16666666666666666,
+        "ndcg_at_10": 0.3562071871080222,
+        "num_results": 531
+      }
+    },
+    {
+      "query": "css cascading style sheets",
+      "type": "lexical",
+      "num_relevant": 2,
+      "bm25": {
+        "precision_at_10": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_10": 0.8065735963827293,
+        "num_results": 1396
+      },
+      "semantic": {
+        "precision_at_10": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_10": 0.8772153153380493,
+        "num_results": 1411
+      }
+    },
+    {
+      "query": "webassembly",
+      "type": "lexical",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.25,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 4
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 19
+      }
+    },
+    {
+      "query": "http hypertext transfer protocol",
+      "type": "lexical",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 4572
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 4587
+      }
+    },
+    {
+      "query": "eurovision song contest rules",
+      "type": "lexical",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 1266
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 1281
+      }
+    },
+    {
+      "query": "messi inter miami",
+      "type": "lexical",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 600
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 615
+      }
+    },
+    {
+      "query": "changing how a webpage looks visually",
+      "type": "semantic",
+      "num_relevant": 2,
+      "bm25": {
+        "precision_at_10": 0.0,
+        "mrr": 0.03333333333333333,
+        "ndcg_at_10": 0.0,
+        "num_results": 3474
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 0.16666666666666666,
+        "ndcg_at_10": 0.21840743681816419,
+        "num_results": 3489
+      }
+    },
+    {
+      "query": "sending information between a web browser and a server",
+      "type": "semantic",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 3799
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 3814
+      }
+    },
+    {
+      "query": "keeping web apps safe from bad actors online",
+      "type": "semantic",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.0,
+        "mrr": 0.0007733952049497294,
+        "ndcg_at_10": 0.0,
+        "num_results": 5546
+      },
+      "semantic": {
+        "precision_at_10": 0.0,
+        "mrr": 0.0007645259938837921,
+        "ndcg_at_10": 0.0,
+        "num_results": 5561
+      }
+    },
+    {
+      "query": "singing competition among countries in europe",
+      "type": "semantic",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.1,
+        "mrr": 0.5,
+        "ndcg_at_10": 0.6309297535714575,
+        "num_results": 1815
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 1830
+      }
+    },
+    {
+      "query": "a famous footballer playing again after family loss",
+      "type": "semantic",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.1,
+        "mrr": 0.125,
+        "ndcg_at_10": 0.31546487678572877,
+        "num_results": 2819
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 0.3333333333333333,
+        "ndcg_at_10": 0.5,
+        "num_results": 2834
+      }
+    },
+    {
+      "query": "a reptile's very long trip back to its home",
+      "type": "semantic",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.0,
+        "mrr": 0.0014903129657228018,
+        "ndcg_at_10": 0.0,
+        "num_results": 7551
+      },
+      "semantic": {
+        "precision_at_10": 0.0,
+        "mrr": 0.0014577259475218659,
+        "ndcg_at_10": 0.0,
+        "num_results": 7566
+      }
+    },
+    {
+      "query": "assembling programs to run fast inside a browser",
+      "type": "semantic",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.0,
+        "mrr": 0.019230769230769232,
+        "ndcg_at_10": 0.0,
+        "num_results": 2904
+      },
+      "semantic": {
+        "precision_at_10": 0.0,
+        "mrr": 0.014925373134328358,
+        "ndcg_at_10": 0.0,
+        "num_results": 2919
+      }
+    },
+    {
+      "query": "articles about staying fit and living longer",
+      "type": "semantic",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.0,
+        "mrr": 0.034482758620689655,
+        "ndcg_at_10": 0.0,
+        "num_results": 3685
+      },
+      "semantic": {
+        "precision_at_10": 0.0,
+        "mrr": 0.043478260869565216,
+        "ndcg_at_10": 0.0,
+        "num_results": 3700
+      }
+    },
+    {
+      "query": "python's built-in dictionary of technical terms",
+      "type": "semantic",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 1400
+      },
+      "semantic": {
+        "precision_at_10": 0.1,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "num_results": 1415
+      }
+    },
+    {
+      "query": "features being phased out in a programming language",
+      "type": "semantic",
+      "num_relevant": 1,
+      "bm25": {
+        "precision_at_10": 0.0,
+        "mrr": 0.0,
+        "ndcg_at_10": 0.0,
+        "num_results": 2450
+      },
+      "semantic": {
+        "precision_at_10": 0.0,
+        "mrr": 0.06666666666666667,
+        "ndcg_at_10": 0.0,
+        "num_results": 2465
+      }
+    }
+  ],
+  "summary": {
+    "overall": {
+      "bm25": {
+        "precision_at_10": 0.07250000000000001,
+        "mrr": 0.43373825574050046,
+        "ndcg_at_10": 0.4565019707585248
+      },
+      "semantic": {
+        "precision_at_10": 0.08,
+        "mrr": 0.6146979609639316,
+        "ndcg_at_10": 0.6291379846417847
+      }
+    },
+    "lexical": {
+      "bm25": {
+        "precision_at_10": 0.10500000000000001,
+        "mrr": 0.5960454545454545,
+        "ndcg_at_10": 0.6183644784813309
+      },
+      "semantic": {
+        "precision_at_10": 0.11000000000000001,
+        "mrr": 0.8666666666666666,
+        "ndcg_at_10": 0.8864352256017529
+      }
+    },
+    "semantic": {
+      "bm25": {
+        "precision_at_10": 0.04,
+        "mrr": 0.2714310569355465,
+        "ndcg_at_10": 0.29463946303571864
+      },
+      "semantic": {
+        "precision_at_10": 0.05,
+        "mrr": 0.3627292552611966,
+        "ndcg_at_10": 0.3718407436818164
+      }
+    }
+  }
+}
