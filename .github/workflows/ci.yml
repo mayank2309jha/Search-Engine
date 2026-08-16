@@ -31,6 +31,31 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # app/main.py loads the sentence-transformer model (app/semantic.py) and
+      # NLTK's stopwords corpus (app/tokenizer.py) at import time, unconditionally.
+      # Locally that's invisible -- both end up cached in the developer's home
+      # directory the first time they're ever used, on any project, and every run
+      # after that is a cache hit. A fresh GitHub-hosted runner has neither cache:
+      # confirmed directly by reproducing this exact failure locally (`HOME` pointed
+      # at an empty temp dir, `from app.main import app` raises `OSError: We
+      # couldn't connect to 'https://huggingface.co'...`) -- this is what actually
+      # failed CI's first real run on this infrastructure (pytest exit code 2,
+      # a collection-time error, not a test assertion failure). The Docker image
+      # already solved this for itself (see Dockerfile's own pre-download layer);
+      # this step gives the plain pytest job the same treatment, using the same
+      # NLTK download method already proven reliable there (nltk's own downloader
+      # has a separate, unrelated bug in constrained build contexts).
+      - name: Pre-download the sentence-transformer model + NLTK stopwords (fresh runner has neither cached)
+        run: |
+          python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+          python -c "
+          import urllib.request, zipfile, io, os
+          url = 'https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/corpora/stopwords.zip'
+          os.makedirs(os.path.expanduser('~/nltk_data/corpora'), exist_ok=True)
+          data = urllib.request.urlopen(url, timeout=30).read()
+          zipfile.ZipFile(io.BytesIO(data)).extractall(os.path.expanduser('~/nltk_data/corpora'))
+          "
+
       - name: Generate CI index fixture (data/index.bin doesn't exist in git)
         # PYTHONPATH=. so `tests.fixture_builder` resolves -- pytest.ini gives
         # pytest this for free, but this is a plain script invocation, not pytest.
